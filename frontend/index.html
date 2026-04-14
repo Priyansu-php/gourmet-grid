@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gourmet Grid | Premium Food Delivery</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .search-filter-bar {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr auto;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            align-items: center;
+        }
+
+        .search-filter-bar input,
+        .search-filter-bar select {
+            width: 100%;
+            padding: 0.85rem 1rem;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            font-family: inherit;
+        }
+
+        .search-filter-bar input::placeholder {
+            color: #94a3b8;
+        }
+
+        .search-filter-bar select option {
+            color: black;
+        }
+
+        .restaurant-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        .availability-badge {
+            display: inline-block;
+            padding: 0.25rem 0.65rem;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .open-badge {
+            background: rgba(34, 197, 94, 0.15);
+            color: #22c55e;
+        }
+
+        .closed-badge {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+        }
+
+        .restaurant-actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 768px) {
+            .search-filter-bar {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="logo">Gourmet Grid <span class="dot">.</span></div>
+        <div class="nav-links">
+            <a href="index.html" class="active">Home</a>
+            <a href="dashboard.html" id="nav-dashboard" style="display:none;">Dashboard</a>
+            <a href="login.html" id="nav-login" class="btn btn-primary">Sign In</a>
+            <a href="#" id="nav-logout" class="btn btn-secondary" style="display:none;" onclick="logout()">Log Out</a>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="hero-content">
+            <h1>Elevate your <span class="highlight">dining</span> experience.</h1>
+            <p>Discover premium culinary delights delivered swiftly to your doorstep. Experience food delivery
+                reimagined.</p>
+            <a href="#restaurants" class="btn btn-primary btn-large">Explore Menus</a>
+        </div>
+    </header>
+
+    <main id="restaurants" class="section">
+        <h2>Curated Restaurants</h2>
+
+        <div class="search-filter-bar">
+            <input type="text" id="search-input" placeholder="Search restaurants or cuisine..."
+                oninput="applyRestaurantFilters()">
+
+            <select id="cuisine-filter" onchange="applyRestaurantFilters()">
+                <option value="">All Cuisines</option>
+                <option value="North Indian">North Indian</option>
+                <option value="South Indian">South Indian</option>
+                <option value="Street Food">Street Food</option>
+                <option value="Indian">Indian</option>
+                <option value="Chinese">Chinese</option>
+                <option value="Italian">Italian</option>
+            </select>
+
+            <select id="rating-filter" onchange="applyRestaurantFilters()">
+                <option value="">All Ratings</option>
+                <option value="4">4.0+ Rating</option>
+                <option value="4.5">4.5+ Rating</option>
+            </select>
+
+            <select id="availability-filter" onchange="applyRestaurantFilters()">
+                <option value="">Any Availability</option>
+                <option value="open">Open Now</option>
+                <option value="closed">Closed</option>
+            </select>
+
+            <button class="btn btn-secondary" onclick="resetRestaurantFilters()">Reset</button>
+        </div>
+
+        <div id="restaurant-list" class="grid-container">
+            <div class="glass-card loading-skeleton">Loading premium selections...</div>
+        </div>
+    </main>
+
+    <div id="menu-modal" class="modal">
+        <div class="modal-content glass-card">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="modal-rest-name">Restaurant Menu</h2>
+            <div id="menu-list" class="menu-grid"></div>
+
+            <div class="cart-section" id="cart-section" style="display:none;">
+                <h3>Your Cart</h3>
+                <div id="cart-items"></div>
+                <div class="cart-total">Total: ₹<span id="cart-total-price">0.00</span></div>
+                <button class="btn btn-accent" onclick="goToCheckout()">Proceed to Checkout</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 Gourmet Grid. Elevating delivery.</p>
+    </footer>
+
+    <script src="app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            initApp();
+            fetchRestaurants();
+        });
+    </script>
+</body>
+
+</html>

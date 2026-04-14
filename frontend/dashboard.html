@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Gourmet Grid</title>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+    <nav class="navbar">
+        <div class="logo">Gourmet Grid <span class="dot">.</span></div>
+
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="dashboard.html" class="active">Dashboard</a>
+            <a href="#" class="btn btn-secondary" onclick="logout()">Log Out</a>
+        </div>
+    </nav>
+
+    <main class="section" style="padding-top: 10rem;">
+
+        <h2>Welcome to your Dashboard</h2>
+
+        <!-- ORDERS -->
+        <div class="glass-card">
+            <h3>Your Recent Orders</h3>
+            <div id="orders-container">
+                <p class="loading-skeleton">Loading orders...</p>
+            </div>
+        </div>
+
+        <br><br>
+
+        <!-- ADDRESS SECTION -->
+        <div class="glass-card">
+            <h3>Your Saved Addresses</h3>
+            <div id="address-list">
+                <p>Loading addresses...</p>
+            </div>
+        </div>
+
+        <br>
+
+        <!-- ADD ADDRESS FORM -->
+        <div class="glass-card">
+            <h3>Add New Address</h3>
+
+            <input id="address_line" placeholder="Address Line" style="width:100%; margin-bottom:10px;">
+            <input id="city" placeholder="City" style="width:100%; margin-bottom:10px;">
+            <input id="state" placeholder="State" style="width:100%; margin-bottom:10px;">
+            <input id="pincode" placeholder="Pincode" style="width:100%; margin-bottom:10px;">
+
+            <button class="btn btn-primary" onclick="addAddress()">Add Address</button>
+        </div>
+        <br><br>
+
+        <!-- RESTAURANT MENU MANAGEMENT -->
+        <div class="glass-card" id="restaurant-panel" style="display:none;">
+            <h3>Manage Menu</h3>
+
+            <input id="menu_name" placeholder="Item Name" style="width:100%; margin-bottom:10px;">
+            <input id="menu_desc" placeholder="Description" style="width:100%; margin-bottom:10px;">
+            <input id="menu_price" placeholder="Price" style="width:100%; margin-bottom:10px;">
+
+            <button class="btn btn-primary" onclick="addMenuItem()">Add Item</button>
+
+            <div id="menu-management-list" style="margin-top:1rem;"></div>
+        </div>
+        <br><br>
+
+        <!-- REPORTS DASHBOARD -->
+        <div class="glass-card">
+            <h3>System Reports</h3>
+
+            <div id="reports-summary"></div>
+
+            <h4 style="margin-top:1rem;">🔥 Popular Dishes</h4>
+            <div id="popular-dishes"></div>
+
+            <h4 style="margin-top:1rem;">🏪 Restaurant Performance</h4>
+            <div id="restaurant-performance"></div>
+        </div>
+    </main>
+
+    <script src="app.js"></script>
+
+    <script>
+        // SHOW MENU PANEL ONLY FOR RESTAURANTS
+        function checkRestaurantPanel() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (user && user.role === 'restaurant') {
+                document.getElementById("restaurant-panel").style.display = "block";
+                loadMenuManagement();
+            }
+        }
+
+        // LOAD MENU ITEMS
+        async function loadMenuManagement() {
+            const user = JSON.parse(localStorage.getItem('user'));
+
+            const res = await fetch(`${API_URL}/restaurants/${user.id}`);
+            const data = await res.json();
+
+            const container = document.getElementById("menu-management-list");
+            container.innerHTML = "";
+
+            data.menu.forEach(item => {
+                container.innerHTML += `
+            <div class="glass-card" style="margin-bottom:10px;">
+                <h4>${item.name}</h4>
+<span style="color:#a78bfa;">₹${item.price}</span>
+                <p>${item.description}</p>
+
+                <button class="btn btn-danger" onclick="deleteMenuItem(${item.id})">
+                    Delete
+                </button>
+            </div>
+        `;
+            });
+        }
+
+        // ADD ITEM
+        async function addMenuItem() {
+            const user = JSON.parse(localStorage.getItem('user'));
+
+            const name = document.getElementById("menu_name").value.trim();
+            const description = document.getElementById("menu_desc").value.trim();
+            const price = document.getElementById("menu_price").value.trim();
+
+            if (!name || !price) {
+                alert("Name and Price are required");
+                return;
+            }
+
+            await fetch(`${API_URL}/restaurants/${user.id}/menu`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name, description, price })
+            });
+
+            alert("Item added");
+
+            // clear fields
+            document.getElementById("menu_name").value = "";
+            document.getElementById("menu_desc").value = "";
+            document.getElementById("menu_price").value = "";
+
+            loadMenuManagement();
+        }
+        // DELETE ITEM
+        async function deleteMenuItem(id) {
+            if (!confirm("Delete this item?")) return;
+
+            await fetch(`${API_URL}/restaurants/menu/${id}`, {
+                method: "DELETE"
+            });
+
+            alert("Item deleted");
+            loadMenuManagement();
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            initApp();
+            fetchUserOrders();
+            loadAddresses();
+            checkRestaurantPanel();
+            loadReports();
+        });
+        async function fetchUserOrders() {
+            const user = JSON.parse(localStorage.getItem('user') || 'null');
+
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const container = document.getElementById('orders-container');
+            if (!container) return;
+
+            container.innerHTML = "Loading orders...";
+
+            try {
+                let endpoint = `${API_URL}/orders/user/${user.id}`;
+
+                if (user.role === 'restaurant') {
+                    endpoint = `${API_URL}/orders/restaurant/${user.id}`;
+                } else if (user.role === 'admin' || user.role === 'delivery') {
+                    endpoint = `${API_URL}/orders`;
+                }
+
+                const res = await fetch(endpoint);
+
+                if (!res.ok) {
+                    throw new Error("Failed to fetch orders");
+                }
+
+                const orders = await res.json();
+
+                if (!Array.isArray(orders) || orders.length === 0) {
+                    container.innerHTML = "<p>No orders found.</p>";
+                    return;
+                }
+
+                let html = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                orders.forEach(o => {
+                    const safeStatus = o.status || "Placed";
+                    const statusClass = "status-" + safeStatus.toLowerCase().replace(/ /g, "-");
+
+                    html += `
+                        <tr>
+                            <td>#${o.id}</td>
+                            <td>₹${o.total_amount}</td>
+                            <td>
+                                <span class="status-badge ${statusClass}">
+                                    ${safeStatus}
+                                </span>
+                            </td>
+                            <td>${new Date(o.created_at).toLocaleString()}</td>
+                            <td>
+                                ${safeStatus === "Placed"
+                            ? `<button class="btn btn-danger" onclick="cancelOrder(${o.id})">Cancel</button>`
+                            : ""
+                        }
+                                <button class="btn btn-secondary" onclick="viewOrderDetails(${o.id})">Track</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                html += `
+                        </tbody>
+                    </table>
+                `;
+
+                container.innerHTML = html;
+
+            } catch (err) {
+                console.error(err);
+                container.innerHTML = "<p style='color:red;'>Failed to load orders</p>";
+            }
+        }
+
+        async function cancelOrder(orderId) {
+            if (!confirm("Cancel this order?")) return;
+
+            const token = localStorage.getItem('token');
+
+            try {
+                const res = await fetch(`${API_URL}/orders/cancel/${orderId}`, {
+                    method: "PUT",
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
+                });
+
+                const data = await res.json();
+                alert(data.message || "Order updated");
+                fetchUserOrders();
+
+            } catch (err) {
+                console.error(err);
+                alert("Failed to cancel order");
+            }
+        }
+
+        async function loadAddresses() {
+            const user = JSON.parse(localStorage.getItem("user") || 'null');
+            const container = document.getElementById("address-list");
+
+            if (!user || !container) return;
+
+            try {
+                const res = await fetch(`${API_URL}/addresses/user/${user.id}`);
+                const addresses = await res.json();
+
+                if (!Array.isArray(addresses) || addresses.length === 0) {
+                    container.innerHTML = "<p>No saved addresses</p>";
+                    return;
+                }
+
+                let html = "";
+
+                addresses.forEach(a => {
+                    html += `
+                        <div class="glass-card" style="margin-bottom:10px">
+                            <p>
+                                ${a.address_line}<br>
+                                ${a.city}, ${a.state} - ${a.pincode}
+                            </p>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML = html;
+
+            } catch (err) {
+                console.error(err);
+                container.innerHTML = "Failed to load addresses";
+            }
+        }
+
+        async function addAddress() {
+            const user = JSON.parse(localStorage.getItem("user") || 'null');
+
+            if (!user) {
+                alert("Please login first");
+                return;
+            }
+
+            const address_line = document.getElementById("address_line").value.trim();
+            const city = document.getElementById("city").value.trim();
+            const state = document.getElementById("state").value.trim();
+            const pincode = document.getElementById("pincode").value.trim();
+
+            if (!address_line || !city || !state || !pincode) {
+                alert("Please fill all fields");
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_URL}/addresses`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        user_id: user.id,
+                        address_line,
+                        city,
+                        state,
+                        pincode
+                    })
+                });
+
+                const data = await res.json();
+                alert(data.message || "Address added");
+
+                document.getElementById("address_line").value = "";
+                document.getElementById("city").value = "";
+                document.getElementById("state").value = "";
+                document.getElementById("pincode").value = "";
+
+                loadAddresses();
+
+            } catch (err) {
+                console.error(err);
+                alert("Failed to add address");
+            }
+        }
+        async function loadReports() {
+
+            try {
+
+                // SUMMARY
+                const summaryRes = await fetch(`${API_URL}/orders/reports/summary`);
+                const summary = await summaryRes.json();
+
+                document.getElementById("reports-summary").innerHTML = `
+            <p>Total Orders: ${summary.totalOrders}</p>
+            <p>Total Revenue: ₹${summary.totalRevenue}</p>
+            <p>Total Users: ${summary.totalUsers}</p>
+            <p>Total Restaurants: ${summary.totalRestaurants}</p>
+        `;
+
+                // POPULAR DISHES
+                const dishesRes = await fetch(`${API_URL}/orders/reports/popular-dishes`);
+                const dishes = await dishesRes.json();
+
+                let dishesHtml = "";
+                if (!Array.isArray(dishes) || dishes.length === 0) {
+                    dishesHtml = "<p>No data available</p>";
+                } else {
+                    dishes.forEach(d => {
+                        dishesHtml += `<p>${d.name} - ${d.total_orders} orders</p>`;
+                    });
+                }
+
+                document.getElementById("popular-dishes").innerHTML = dishesHtml;
+
+                // RESTAURANTS
+                const restRes = await fetch(`${API_URL}/orders/reports/restaurants`);
+                const rest = await restRes.json();
+
+                let restHtml = "";
+                rest.forEach(r => {
+                    restHtml += `
+                <p>
+                    ${r.name} - Orders: ${r.total_orders || 0}, Revenue: ₹${r.revenue || 0}
+                </p>
+            `;
+                });
+
+                document.getElementById("restaurant-performance").innerHTML = restHtml;
+
+            } catch (err) {
+                console.error(err);
+            }
+        }
+    </script>
+
+</body>
+
+</html>

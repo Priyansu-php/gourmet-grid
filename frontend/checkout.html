@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout | Gourmet Grid</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .checkout-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .checkout-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-family: inherit;
+        }
+
+        .cart-summary {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .cart-summary h3 {
+            margin-top: 0;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .summary-total {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.25rem;
+            font-weight: bold;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .upi-box {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .upi-methods {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .upi-option {
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            padding: 0.75rem;
+            cursor: pointer;
+            text-align: center;
+            transition: 0.2s ease;
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .upi-option:hover {
+            transform: translateY(-1px);
+        }
+
+        .upi-option.active {
+            border: 2px solid #7c3aed;
+            background: rgba(124, 58, 237, 0.12);
+        }
+
+        .upi-note {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-top: 0.5rem;
+        }
+
+        .status-chip {
+            display: inline-block;
+            padding: 0.35rem 0.7rem;
+            border-radius: 999px;
+            background: rgba(34, 197, 94, 0.15);
+            color: #22c55e;
+            font-size: 0.85rem;
+            margin-top: 0.75rem;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="logo">Gourmet Grid <span class="dot">.</span></div>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="dashboard.html">Dashboard</a>
+            <a href="#" class="btn btn-secondary" onclick="logout()">Log Out</a>
+        </div>
+    </nav>
+
+    <main class="section" style="padding-top: 8rem;">
+        <h2>Secure Checkout</h2>
+
+        <div class="checkout-grid">
+
+            <!-- UPI PAYMENT -->
+            <div class="glass-card">
+                <h3>UPI Payment</h3>
+
+                <div class="upi-box">
+                    <p style="margin-top:0;">Choose a UPI method</p>
+
+                    <div class="upi-methods">
+                        <div class="upi-option active" data-method="gpay" onclick="selectUpiMethod(this, 'gpay')">Google
+                            Pay</div>
+                        <div class="upi-option" data-method="phonepe" onclick="selectUpiMethod(this, 'phonepe')">PhonePe
+                        </div>
+                        <div class="upi-option" data-method="paytm" onclick="selectUpiMethod(this, 'paytm')">Paytm</div>
+                        <div class="upi-option" data-method="other" onclick="selectUpiMethod(this, 'other')">Other UPI
+                        </div>
+                    </div>
+
+                    <form id="payment-form">
+                        <div class="form-group">
+                            <label for="upi-id">UPI ID</label>
+                            <input type="text" id="upi-id" placeholder="example@okaxis" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="upi-name">Name on UPI</label>
+                            <input type="text" id="upi-name" placeholder="Your Name" required>
+                        </div>
+
+                        <div class="upi-note">
+                            This is a demo UPI interaction for our DBMS project. No real payment will be charged. ENJOY
+                            YOUR TREAT!
+                        </div>
+
+                        <div id="payment-status"></div>
+
+                        <button type="submit" id="pay-btn" class="btn btn-accent"
+                            style="width: 100%; margin-top: 1rem;">
+                            Pay via UPI & Place Order
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ORDER SUMMARY -->
+            <div class="cart-summary glass-card">
+                <h3>Order Summary</h3>
+                <div id="checkout-items"></div>
+                <div class="summary-total">
+                    <span>Total</span>
+                    <span id="checkout-total">₹0.00</span>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="app.js"></script>
+    <script>
+        let selectedUpiMethod = "gpay";
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initApp();
+            loadCheckout();
+
+            document.getElementById('payment-form').addEventListener('submit', handlePayment);
+        });
+
+        function selectUpiMethod(element, method) {
+            selectedUpiMethod = method;
+
+            document.querySelectorAll('.upi-option').forEach(opt => {
+                opt.classList.remove('active');
+            });
+
+            element.classList.add('active');
+        }
+
+        function loadCheckout() {
+            const cartHtmlEl = document.getElementById('checkout-items');
+            const totalHtmlEl = document.getElementById('checkout-total');
+
+            const cartString = localStorage.getItem('cart');
+
+            if (!cartString) {
+                cartHtmlEl.innerHTML = '<p>Your cart is empty.</p>';
+                document.getElementById('pay-btn').disabled = true;
+                return;
+            }
+
+            const cart = JSON.parse(cartString);
+
+            if (cart.length === 0) {
+                cartHtmlEl.innerHTML = '<p>Your cart is empty.</p>';
+                document.getElementById('pay-btn').disabled = true;
+                return;
+            }
+
+            let total = 0;
+            let html = '';
+
+            cart.forEach(item => {
+                const itemTotal = item.price * item.quantity;
+                total += itemTotal;
+
+                html += `
+                    <div class="summary-item">
+                        <span>${item.quantity}x ${item.name}</span>
+                        <span>₹${itemTotal.toFixed(2)}</span>
+                    </div>
+                `;
+            });
+
+            cartHtmlEl.innerHTML = html;
+            totalHtmlEl.innerText = `₹${total.toFixed(2)}`;
+        }
+
+        async function handlePayment(e) {
+            e.preventDefault();
+
+            const upiId = document.getElementById('upi-id').value.trim();
+            const upiName = document.getElementById('upi-name').value.trim();
+            const btn = document.getElementById('pay-btn');
+            const paymentStatus = document.getElementById('payment-status');
+
+            if (!upiId || !upiName) {
+                alert("Please enter UPI details.");
+                return;
+            }
+
+            if (!upiId.includes('@')) {
+                alert("Please enter a valid UPI ID.");
+                return;
+            }
+
+            btn.innerText = "Opening UPI...";
+            btn.disabled = true;
+            paymentStatus.innerHTML = "";
+
+            await new Promise(resolve => setTimeout(resolve, 1200));
+
+            paymentStatus.innerHTML = `
+                <div class="status-chip">
+                    UPI app: ${selectedUpiMethod.toUpperCase()} selected
+                </div>
+            `;
+
+            btn.innerText = "Verifying Payment...";
+            await new Promise(resolve => setTimeout(resolve, 1800));
+
+            paymentStatus.innerHTML += `
+                <div class="status-chip" style="margin-left:0.5rem;">
+                    Payment Successful
+                </div>
+            `;
+
+            await submitOrder();
+        }
+
+        async function submitOrder() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            const token = localStorage.getItem('token');
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            const restId = localStorage.getItem('currentRestaurantId');
+
+            if (!user || !token) {
+                alert("Session expired. Please log in again.");
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const totalAmount = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+            try {
+                const res = await fetch(`${API_URL}/orders`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        user_id: user.id,
+                        restaurant_id: parseInt(restId),
+                        items: cart,
+                        total_amount: totalAmount,
+                        payment_method: "UPI",
+                        payment_provider: selectedUpiMethod
+                    })
+                });
+
+                if (res.ok) {
+                    alert('UPI Payment Successful! Order placed securely via Gourmet Grid.');
+                    localStorage.removeItem('cart');
+                    localStorage.removeItem('currentRestaurantId');
+                    window.location.href = 'dashboard.html';
+                } else {
+                    const data = await res.json();
+                    alert(`Error: ${data.message}`);
+                    document.getElementById('pay-btn').innerText = "Pay via UPI & Place Order";
+                    document.getElementById('pay-btn').disabled = false;
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Server error while placing order.');
+                document.getElementById('pay-btn').innerText = "Pay via UPI & Place Order";
+                document.getElementById('pay-btn').disabled = false;
+            }
+        }
+    </script>
+</body>
+
+</html>
