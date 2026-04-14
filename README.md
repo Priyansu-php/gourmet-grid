@@ -128,8 +128,6 @@ This project was developed to strengthen understanding of:
 
 ## Screenshots
 
-Add screenshots of the following pages here:
-
 * Home page
 * Login / Signup page
 * Menu page
@@ -137,13 +135,13 @@ Add screenshots of the following pages here:
 * Order page
 * Admin dashboard
 
-Example format:
+<img width="1447" height="838" alt="Screenshot 2026-04-14 at 7 08 32 PM" src="https://github.com/user-attachments/assets/1bdc7a7d-dc1a-44ac-8dbb-6aa36480d449" />
+<img width="1447" height="846" alt="Screenshot 2026-04-14 at 7 07 06 PM" src="https://github.com/user-attachments/assets/12e90de9-a927-440c-93a6-8dc38e600cad" />
+<img width="1447" height="838" alt="Screenshot 2026-04-14 at 7 07 34 PM" src="https://github.com/user-attachments/assets/6a722920-f5de-4aa6-a494-2286bcb0112a" />
+<img width="1447" height="846" alt="Screenshot 2026-04-14 at 7 06 57 PM" src="https://github.com/user-attachments/assets/ba00813f-6da3-466e-93fc-32cfc217eee5" />
+<img width="1447" height="838" alt="Screenshot 2026-04-15 at 12 09 43 AM" src="https://github.com/user-attachments/assets/6d4c7cd5-6cfc-4a37-be9c-a421b15622be" />
+<img width="1447" height="838" alt="Screenshot 2026-04-14 at 7 08 39 PM" src="https://github.com/user-attachments/assets/2e7a221d-cc45-43d8-a7ef-aba349760018" />
 
-```md
-## Screenshots
-![Home Page](path/to/screenshot.png)
-![Menu Page](path/to/screenshot2.png)
-```
 
 ## Author
 
